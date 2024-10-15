@@ -1,0 +1,30 @@
+{
+  "manifest_version": 2,
+  "name": "JavaScript Toggle",
+  "version": "1.0",
+  "description": "Enable or disable JavaScript on the current page using Chrome's Debugger API",
+  "permissions": [
+    "activeTab",
+    "declarativeContent",
+    "storage",
+    "debugger"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "page_action": {
+    "default_icon": {
+      "16": "icons/icon16-gray.jpg",
+      "32": "icons/icon32-gray.jpg",
+      "48": "icons/icon48-gray.jpg",
+      "128": "icons/icon128-gray.jpg"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.jpg",
+    "32": "icons/icon32.jpg",
+    "48": "icons/icon48.jpg",
+    "128": "icons/icon128.jpg"
+  }
+}
