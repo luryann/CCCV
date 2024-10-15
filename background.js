@@ -8,14 +8,14 @@ chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
 });
 
 function updateIcon(tabId, isJsEnabled) {
-  const iconName = isJsEnabled ? 'grey' : 'color';
+  const iconName = isJsEnabled ? 'gray' : 'color';
   chrome.pageAction.setIcon({
     tabId: tabId,
     path: {
-      "16": `icons/icon16${iconName}.jpg`,
-      "32": `icons/icon32${iconName}.jpg`,
-      "48": `icons/icon48${iconName}.jpg`,
-      "128": `icons/icon128${iconName}.jpg`
+      "16": `icons/icon16-${iconName}.png`,
+      "32": `icons/icon32-${iconName}.png`,
+      "48": `icons/icon48-${iconName}.png`,
+      "128": `icons/icon128-${iconName}.png`
     }
   });
 }
