@@ -12,6 +12,7 @@ To use:
 
 To disable:
 1. Click the extension again.
-2. Exit debugging 
+2. Page will refresh
+3. Debugging should automatically disable after the page reloads 
 
-When you click the extension, it will enable debugging, but this is the only way to disable js without having it complain.  
+When you click the extension, it will enable debugging, but this is the only way to disable js without having it complain.  When JS is enabled, the icon will have color, when disabled it will be gray.
