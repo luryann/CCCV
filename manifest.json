@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CCCV",
-  "version": "1.0.0",
+  "version": "1.1",
   "description": "Disable clipboard hijacking by disabling JavaScript via Chrome Debugger Protocol",
   "permissions": [
     "activeTab",
@@ -15,7 +15,8 @@
       "32": "icons/js-enabled-32.png",
       "48": "icons/js-enabled-48.png",
       "128": "icons/js-enabled-128.png"
-    }
+    },
+    "default_title": "JavaScript is enabled"
   },
   "background": {
     "service_worker": "background.js"
