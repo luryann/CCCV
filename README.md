@@ -24,3 +24,8 @@ Disable clipboard hijacking by disabling JavaScript via Chrome Debugger Protocol
 **Debugger Usage:**
 
 Debugging is enabled to toggle JavaScript, but it detaches automatically when no longer required. This is the most reliable method to toggle JavaScript without issues.
+
+
+**Credits:**
+- svgrepo for the icons
+- Google for Debugger Protocol
