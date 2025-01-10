@@ -1,18 +1,27 @@
-Bypass WNNorton's clipboard hijacking by disabling JavaScript. 
+**JavaScript Toggle Extension**
 
-To install:
+Disable clipboard hijacking by disabling JavaScript via Chrome Debugger Protocol
 
-1. Clone the repo
-2. Go to `chrome://extensions`
-3. Click `Load Unpacked`
-4. Select the folder you cloned with manifest.json, background.js and icons folder.
+**To Install:**
 
-To use:
-1. Click the extension
+1. Clone this repository.
+2. Open Chrome and go to chrome://extensions.
+3. Enable Developer Mode (toggle in the top-right corner).
+4. Click Load Unpacked.
+5. Select the folder containing manifest.json, background.js, and the icons folder.
 
-To disable:
-1. Click the extension again.
-2. Page will refresh
-3. Debugging should automatically disable after the page reloads 
 
-When you click the extension, it will enable debugging, but this is the only way to disable js without having it complain.  When JS is enabled, the icon will have color, when disabled it will be gray.
+**To Use:**
+1. Click the extension icon to disable JavaScript on the current tab.
+2. The notice that the browser is being debugged will show
+
+**To Re-enable JavaScript:**
+1. Click the extension icon again.
+
+**Behavior:**
+1. The extension disables or enables JavaScript dynamically without refreshing the page.
+
+**Debugger Usage:**
+
+Debugging is enabled to toggle JavaScript, but it detaches automatically when no longer required.
+This is the most reliable method to toggle JavaScript without issues.
