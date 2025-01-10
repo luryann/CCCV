@@ -1,4 +1,4 @@
-**JavaScript Toggle Extension**
+**CCCV**
 
 Disable clipboard hijacking by disabling JavaScript via Chrome Debugger Protocol
 
@@ -23,5 +23,4 @@ Disable clipboard hijacking by disabling JavaScript via Chrome Debugger Protocol
 
 **Debugger Usage:**
 
-Debugging is enabled to toggle JavaScript, but it detaches automatically when no longer required.
-This is the most reliable method to toggle JavaScript without issues.
+Debugging is enabled to toggle JavaScript, but it detaches automatically when no longer required. This is the most reliable method to toggle JavaScript without issues.
