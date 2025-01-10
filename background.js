@@ -12,15 +12,25 @@ const getIconPath = (isEnabled) => ({
   128: `icons/js-${isEnabled ? 'enabled' : 'disabled'}-128.png`
 });
 
-// Update the extension icon to reflect current state
-async function updateIcon(tabId, isEnabled) {
+// Enhanced function to update both icon and tooltip
+async function updateIconAndTooltip(tabId, isEnabled) {
   try {
+    // Update the icon
     await chrome.action.setIcon({
       tabId,
       path: getIconPath(isEnabled)
     });
+
+    // Create a detailed tooltip message
+    const tooltipMessage = `JavaScript is ${isEnabled ? 'enabled' : 'disabled'}`;
+    
+    // Update the tooltip
+    await chrome.action.setTitle({
+      tabId,
+      title: tooltipMessage
+    });
   } catch (error) {
-    console.error('Failed to update icon:', error);
+    console.error('Failed to update icon or tooltip:', error);
   }
 }
 
@@ -46,34 +56,13 @@ async function loadState(tabId) {
   }
 }
 
-// Clean up storage and debugger when a tab is closed
+// Clean up storage when a tab is closed
 async function cleanupTab(tabId) {
   try {
     await chrome.storage.local.remove(`${STATE_KEY}_${tabId}`);
     tabStates.delete(tabId);
-    
-    // Detach debugger if it's attached
-    try {
-      await chrome.debugger.detach({ tabId });
-    } catch (error) {
-      // Ignore if debugger wasn't attached
-      if (!error.message.includes('not attached')) {
-        console.error('Failed to detach debugger during cleanup:', error);
-      }
-    }
   } catch (error) {
     console.error('Failed to cleanup tab:', error);
-  }
-}
-
-// Check if debugger is attached to a tab
-async function isDebuggerAttached(tabId) {
-  try {
-    const targets = await chrome.debugger.getTargets();
-    return targets.some(target => target.tabId === tabId && target.attached);
-  } catch (error) {
-    console.error('Failed to check debugger status:', error);
-    return false;
   }
 }
 
@@ -98,45 +87,39 @@ async function toggleJavaScript(tabId) {
     isEnabled = !isEnabled;
 
     if (!isEnabled) {
-      // Disabling JavaScript - attach debugger if not already attached
-      if (!(await isDebuggerAttached(tabId))) {
+      // Attach debugger if not already attached
+      try {
         await chrome.debugger.attach(debuggee, DEBUGGER_VERSION);
+      } catch (error) {
+        if (!error.message.includes('Already attached')) {
+          throw error;
+        }
       }
       await chrome.debugger.sendCommand(debuggee, 'Emulation.setScriptExecutionDisabled', {
         value: true
       });
     } else {
-      // Enabling JavaScript
       if (await isDebuggerAttached(tabId)) {
-        // First enable JavaScript execution
+        // Enable JavaScript and detach debugger
         await chrome.debugger.sendCommand(debuggee, 'Emulation.setScriptExecutionDisabled', {
           value: false
         });
-        // Then detach the debugger
         await chrome.debugger.detach(debuggee);
       }
     }
 
-    // Update state and UI
+    // Update state, UI, and tooltip
     tabStates.set(tabId, isEnabled);
-    await updateIcon(tabId, isEnabled);
+    await updateIconAndTooltip(tabId, isEnabled);
     await saveState(tabId, isEnabled);
-
-    // Execute content script to handle dynamic JavaScript state
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      func: (enabled) => {
-        // Notify the page that JavaScript state has changed
-        window.dispatchEvent(new CustomEvent('javascriptToggled', { 
-          detail: { enabled } 
-        }));
-      },
-      args: [isEnabled]
-    });
 
   } catch (error) {
     console.error('Failed to toggle JavaScript:', error);
-    // Show error in extension popup or badge
+    // Show error in tooltip and badge
+    await chrome.action.setTitle({
+      tabId,
+      title: `Error: ${error.message}`
+    });
     await chrome.action.setBadgeText({
       tabId,
       text: '!'
@@ -152,7 +135,21 @@ async function toggleJavaScript(tabId) {
         tabId,
         text: ''
       });
+      // Restore normal tooltip
+      const currentState = await loadState(tabId);
+      await updateIconAndTooltip(tabId, currentState);
     }, 3000);
+  }
+}
+
+// Check if debugger is attached to a tab
+async function isDebuggerAttached(tabId) {
+  try {
+    const targets = await chrome.debugger.getTargets();
+    return targets.some(target => target.tabId === tabId && target.attached);
+  } catch (error) {
+    console.error('Failed to check debugger status:', error);
+    return false;
   }
 }
 
@@ -165,28 +162,30 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
   await cleanupTab(tabId);
 });
 
+// Handle tab updates and focus changes
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete') {
     const isEnabled = await loadState(tabId);
-    await updateIcon(tabId, isEnabled);
-    
-    // If JavaScript is disabled for this tab, ensure it stays disabled
-    if (!isEnabled && !(await isDebuggerAttached(tabId))) {
-      await toggleJavaScript(tabId);
-    }
+    await updateIconAndTooltip(tabId, isEnabled);
   }
 });
 
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
+  const isEnabled = await loadState(activeInfo.tabId);
+  await updateIconAndTooltip(activeInfo.tabId, isEnabled);
+});
+
 // Handle debugger detach events
-chrome.debugger.onDetach.addListener(async (source) => {
+chrome.debugger.onDetach.addListener((source) => {
   const tabId = source.tabId;
-  // Only re-attach if JavaScript should be disabled
-  const isEnabled = tabStates.get(tabId);
-  if (typeof isEnabled !== 'undefined' && !isEnabled) {
-    try {
+  // Re-attach debugger if needed and tab still exists
+  chrome.tabs.get(tabId).then(async () => {
+    const isEnabled = tabStates.get(tabId);
+    if (typeof isEnabled !== 'undefined' && !isEnabled) {
       await toggleJavaScript(tabId);
-    } catch (error) {
-      console.error('Failed to re-attach debugger:', error);
     }
-  }
+  }).catch(() => {
+    // Tab no longer exists, clean up
+    cleanupTab(tabId);
+  });
 });
